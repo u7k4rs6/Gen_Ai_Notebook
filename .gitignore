@@ -1,0 +1,5 @@
+node_modules/
+.env
+uploads/
+qdrant_data/
+.DS_Store

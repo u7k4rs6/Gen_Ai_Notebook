@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NotebookLM RAG Clone</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #0f172a;
+            --card-bg: rgba(30, 41, 59, 0.7);
+            --text-color: #f8fafc;
+            --accent-color: #3b82f6;
+            --accent-hover: #2563eb;
+            --border-color: rgba(255, 255, 255, 0.1);
+            --user-msg: rgba(59, 130, 246, 0.9);
+            --bot-msg: rgba(51, 65, 85, 0.8);
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg-color);
+            background-image: radial-gradient(circle at top right, rgba(59, 130, 246, 0.1), transparent 40%),
+                              radial-gradient(circle at bottom left, rgba(147, 51, 234, 0.1), transparent 40%);
+            color: var(--text-color);
+            margin: 0;
+            padding: 2rem;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        h1 {
+            text-align: center;
+            font-weight: 600;
+            margin-bottom: 2rem;
+            background: linear-gradient(135deg, #60a5fa, #a855f7);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-size: 2.5rem;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 800px;
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+        }
+
+        .card {
+            background: var(--card-bg);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            padding: 2rem;
+            border-radius: 16px;
+            border: 1px solid var(--border-color);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 15px 30px rgba(0,0,0,0.3);
+        }
+
+        h2 {
+            margin-top: 0;
+            font-size: 1.25rem;
+            font-weight: 500;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 0.75rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group {
+            position: relative;
+            margin-bottom: 1rem;
+        }
+
+        input[type="file"] {
+            width: 100%;
+            padding: 0.75rem;
+            background: rgba(15, 23, 42, 0.5);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            color: var(--text-color);
+            cursor: pointer;
+            box-sizing: border-box;
+        }
+
+        input[type="file"]::file-selector-button {
+            background: var(--accent-color);
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-right: 1rem;
+            transition: background 0.2s;
+        }
+
+        input[type="file"]::file-selector-button:hover {
+            background: var(--accent-hover);
+        }
+
+        input[type="text"] {
+            width: 100%;
+            padding: 1rem;
+            background: rgba(15, 23, 42, 0.5);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            color: var(--text-color);
+            box-sizing: border-box;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        input[type="text"]::placeholder {
+            color: #94a3b8;
+        }
+
+        input[type="text"]:focus {
+            border-color: var(--accent-color);
+        }
+
+        button {
+            background: var(--accent-color);
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 500;
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 6px rgba(59, 130, 246, 0.2);
+        }
+
+        button:hover:not(:disabled) {
+            background: var(--accent-hover);
+            transform: translateY(-1px);
+            box-shadow: 0 6px 10px rgba(59, 130, 246, 0.3);
+        }
+
+        button:disabled {
+            background: #475569;
+            cursor: not-allowed;
+            opacity: 0.7;
+            box-shadow: none;
+        }
+
+        #chatBox {
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 1.5rem;
+            min-height: 250px;
+            max-height: 400px;
+            overflow-y: auto;
+            background: rgba(15, 23, 42, 0.3);
+            margin-bottom: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            scroll-behavior: smooth;
+        }
+
+        #chatBox::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        #chatBox::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        #chatBox::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+        }
+
+        .message {
+            padding: 1rem 1.25rem;
+            border-radius: 12px;
+            max-width: 80%;
+            line-height: 1.5;
+            animation: fadeIn 0.3s ease-out;
+            word-wrap: break-word;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .user-msg {
+            background: var(--user-msg);
+            align-self: flex-end;
+            border-bottom-right-radius: 4px;
+        }
+
+        .bot-msg {
+            background: var(--bot-msg);
+            align-self: flex-start;
+            border-bottom-left-radius: 4px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .loader {
+            display: none;
+            color: #94a3b8;
+            font-size: 0.9rem;
+            text-align: center;
+            margin: 1rem 0;
+            font-weight: 500;
+        }
+
+        .loader::after {
+            content: '...';
+            animation: dots 1.5s steps(4, end) infinite;
+        }
+
+        @keyframes dots {
+            0%, 20% { color: transparent; text-shadow: .25em 0 0 transparent, .5em 0 0 transparent; }
+            40% { color: #94a3b8; text-shadow: .25em 0 0 transparent, .5em 0 0 transparent; }
+            60% { text-shadow: .25em 0 0 #94a3b8, .5em 0 0 transparent; }
+            80%, 100% { text-shadow: .25em 0 0 #94a3b8, .5em 0 0 #94a3b8; }
+        }
+
+        #uploadStatus {
+            margin-top: 1rem;
+            font-size: 0.9rem;
+            min-height: 1.5rem;
+        }
+
+        .success-text { color: #34d399; }
+        .error-text { color: #f87171; }
+    </style>
+</head>
+<body>
+    <h1>NotebookLM RAG</h1>
+    
+    <div class="container">
+        <div class="card">
+            <h2>1. Upload Document</h2>
+            <form id="uploadForm">
+                <div class="form-group">
+                    <input type="file" id="document" accept=".pdf" required />
+                </div>
+                <button type="submit" id="uploadBtn">Upload & Index</button>
+                <div id="uploadStatus"></div>
+            </form>
+        </div>
+
+        <div class="card">
+            <h2>2. Chat with Document</h2>
+            <div id="chatBox">
+                <div class="message bot-msg">Hello! Upload a document above, then ask me questions about it here.</div>
+            </div>
+            <div class="loader" id="chatLoader">Analyzing document</div>
+            <form id="chatForm" style="display: flex; gap: 1rem;">
+                <input type="text" id="query" placeholder="Ask a question..." required style="flex: 1;" autocomplete="off" />
+                <button type="submit" id="askBtn">Ask</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        let currentDocumentId = null;
+
+        document.getElementById('uploadForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btn = document.getElementById('uploadBtn');
+            const status = document.getElementById('uploadStatus');
+            btn.disabled = true;
+            btn.textContent = "Processing...";
+            status.textContent = "";
+            status.className = "";
+
+            const formData = new FormData();
+            formData.append('document', document.getElementById('document').files[0]);
+
+            try {
+                const res = await fetch('/api/upload', {
+                    method: 'POST',
+                    body: formData
+                });
+                const data = await res.json();
+                if (res.ok) {
+                    currentDocumentId = data.documentId;
+                    status.textContent = "Success: Document processed and ready!";
+                    status.className = "success-text";
+                } else {
+                    status.textContent = `Error: ${data.error}`;
+                    status.className = "error-text";
+                }
+            } catch (err) {
+                status.textContent = `Error: ${err.message}`;
+                status.className = "error-text";
+            } finally {
+                btn.disabled = false;
+                btn.textContent = "Upload & Index";
+            }
+        });
+
+        document.getElementById('chatForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const queryInput = document.getElementById('query');
+            const askBtn = document.getElementById('askBtn');
+            const query = queryInput.value.trim();
+            
+            if (!query) return;
+
+            if (!currentDocumentId) {
+                addMessage("Please upload a document first before asking questions.", 'bot');
+                return;
+            }
+
+            addMessage(query, 'user');
+            queryInput.value = '';
+            askBtn.disabled = true;
+            document.getElementById('chatLoader').style.display = 'block';
+
+            try {
+                const res = await fetch('/api/ask', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ query, documentId: currentDocumentId })
+                });
+                const data = await res.json();
+                
+                if (res.ok) {
+                    addMessage(data.answer, 'bot');
+                } else {
+                    addMessage(`Error: ${data.error}`, 'bot');
+                }
+            } catch (err) {
+                addMessage(`Error: ${err.message}`, 'bot');
+            } finally {
+                document.getElementById('chatLoader').style.display = 'none';
+                askBtn.disabled = false;
+            }
+        });
+
+        function addMessage(text, sender) {
+            const chatBox = document.getElementById('chatBox');
+            const div = document.createElement('div');
+            div.className = `message ${sender === 'user' ? 'user-msg' : 'bot-msg'}`;
+            div.textContent = text;
+            
+            chatBox.appendChild(div);
+            chatBox.scrollTop = chatBox.scrollHeight;
+        }
+    </script>
+</body>
+</html>
