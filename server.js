@@ -1,7 +1,9 @@
 import "dotenv/config";
 import express from "express";
 import multer from "multer";
-import { getDocument } from "pdfjs-dist/legacy/build/pdf.mjs";
+import { createRequire } from "module";
+const require = createRequire(import.meta.url);
+const pdfParse = require("pdf-parse/lib/pdf-parse.js");
 import { Document } from "@langchain/core/documents";
 import { RecursiveCharacterTextSplitter } from "@langchain/textsplitters";
 import { GoogleGenerativeAIEmbeddings, ChatGoogleGenerativeAI } from "@langchain/google-genai";
@@ -38,15 +40,9 @@ app.post("/api/upload", upload.single("document"), async (req, res) => {
         
         console.log(`Uploaded file: ${req.file.path}`);
         const buffer = fs.readFileSync(req.file.path);
-        const pdfDoc = await getDocument({ data: new Uint8Array(buffer) }).promise;
-        const pageTexts = [];
-        for (let i = 1; i <= pdfDoc.numPages; i++) {
-            const page = await pdfDoc.getPage(i);
-            const content = await page.getTextContent();
-            pageTexts.push(content.items.map(item => item.str).join(" "));
-        }
+        const pdfData = await pdfParse(buffer);
         const docs = [new Document({
-            pageContent: pageTexts.join("\n\n"),
+            pageContent: pdfData.text,
             metadata: { source: req.file.originalname || req.file.path }
         })];
         
