@@ -1,7 +1,10 @@
 import "dotenv/config";
 import express from "express";
 import multer from "multer";
-import { PDFLoader } from "@langchain/community/document_loaders/fs/pdf";
+import { createRequire } from "module";
+const require = createRequire(import.meta.url);
+const pdfParse = require("pdf-parse");
+import { Document } from "@langchain/core/documents";
 import { RecursiveCharacterTextSplitter } from "@langchain/textsplitters";
 import { GoogleGenerativeAIEmbeddings, ChatGoogleGenerativeAI } from "@langchain/google-genai";
 import { QdrantVectorStore } from "@langchain/qdrant";
@@ -36,8 +39,12 @@ app.post("/api/upload", upload.single("document"), async (req, res) => {
         }
         
         console.log(`Uploaded file: ${req.file.path}`);
-        const loader = new PDFLoader(req.file.path);
-        const docs = await loader.load();
+        const buffer = fs.readFileSync(req.file.path);
+        const pdfData = await pdfParse(buffer);
+        const docs = [new Document({
+            pageContent: pdfData.text,
+            metadata: { source: req.file.originalname || req.file.path }
+        })];
         
         const textSplitter = new RecursiveCharacterTextSplitter({
             chunkSize: 1000,
