@@ -1,17 +1,17 @@
-# 📓 Google NotebookLM RAG Clone
+# Google NotebookLM RAG Clone
 
 A premium, high-performance RAG-powered application that allows users to upload documents and seamlessly converse with them using AI.
 
 Built to fulfill the requirements of Assignment 03, this project has been fully optimized for scale and features a stunning modern UI.
 
-## ✨ Key Features
+## Key Features
 
 - **Blazing Fast Retrievals:** Uses **Qdrant** for vector storage, completely eliminating the need to re-embed documents on every question.
 - **Premium UI/UX:** A beautifully designed frontend featuring dark mode, glassmorphism, responsive micro-animations, and clean typography.
 - **Document Isolation:** Supports multiple documents simultaneously by intelligently tagging vector chunks with unique Document IDs.
 - **Serverless Ready:** The backend is completely stateless, making it fully compatible with serverless deployment platforms.
 
-## 🧠 Architecture & Chunking
+## Architecture & Chunking
 
 We employ the `RecursiveCharacterTextSplitter` strategy to divide documents into manageable pieces. This approach respects semantic boundaries (like paragraphs and sentences) before breaking them apart.
 - **Chunk Size:** 1000 characters
@@ -19,7 +19,7 @@ We employ the `RecursiveCharacterTextSplitter` strategy to divide documents into
 
 Embedded chunks are stored persistently in **Qdrant** and queried dynamically using Google's `gemini-1.5-flash` model to generate highly accurate, context-aware answers.
 
-## 🚀 Setup & Local Development
+## Setup & Local Development
 
 ### Prerequisites
 - Node.js (v18+)
@@ -53,7 +53,7 @@ Embedded chunks are stored persistently in **Qdrant** and queried dynamically us
    ```
    Visit `http://localhost:3000` to interact with your documents!
 
-## 💻 CLI Tools
+## CLI Tools
 
 You can also use the integrated CLI application to interact with your documents via the terminal.
 
@@ -68,7 +68,7 @@ node index.js ask "What is this document about?"
 ```
 *(Tip: You can use the `-d <documentId>` flag to query a specific document!)*
 
-## ☁️ Deployment
+## Deployment
 
 For easy deployment (e.g., Render, Railway, Vercel):
 1. Push this repository to GitHub.
