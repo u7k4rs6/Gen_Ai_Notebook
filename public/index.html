@@ -206,6 +206,14 @@
             border: 1px solid rgba(255, 255, 255, 0.05);
         }
 
+        .bot-msg p { margin: 0 0 0.5rem; }
+        .bot-msg p:last-child { margin-bottom: 0; }
+        .bot-msg ul, .bot-msg ol { margin: 0.25rem 0 0.5rem 1.25rem; padding: 0; }
+        .bot-msg li { margin-bottom: 0.2rem; }
+        .bot-msg strong { color: #e2e8f0; }
+        .bot-msg code { background: rgba(255,255,255,0.1); padding: 0.1rem 0.3rem; border-radius: 3px; font-size: 0.85em; }
+        .bot-msg h1, .bot-msg h2, .bot-msg h3 { margin: 0.5rem 0 0.25rem; font-size: 1em; color: #e2e8f0; }
+
         .loader {
             display: none;
             color: #94a3b8;
@@ -236,6 +244,7 @@
         .success-text { color: #34d399; }
         .error-text { color: #f87171; }
     </style>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 </head>
 <body>
     <h1>NotebookLM RAG</h1>
@@ -346,7 +355,11 @@
             const chatBox = document.getElementById('chatBox');
             const div = document.createElement('div');
             div.className = `message ${sender === 'user' ? 'user-msg' : 'bot-msg'}`;
-            div.textContent = text;
+            if (sender === 'bot') {
+                div.innerHTML = marked.parse(text);
+            } else {
+                div.textContent = text;
+            }
             
             chatBox.appendChild(div);
             chatBox.scrollTop = chatBox.scrollHeight;

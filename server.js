@@ -3,8 +3,9 @@ import express from "express";
 import multer from "multer";
 import { PDFLoader } from "@langchain/community/document_loaders/fs/pdf";
 import { RecursiveCharacterTextSplitter } from "@langchain/textsplitters";
-import { GoogleGenAIEmbeddings, ChatGoogleGenAI } from "@langchain/google-genai";
+import { GoogleGenerativeAIEmbeddings, ChatGoogleGenerativeAI } from "@langchain/google-genai";
 import { QdrantVectorStore } from "@langchain/qdrant";
+import { QdrantClient } from "@qdrant/js-client-rest";
 import fs from "fs";
 import crypto from "crypto";
 
@@ -48,12 +49,22 @@ app.post("/api/upload", upload.single("document"), async (req, res) => {
             return doc;
         });
 
-        const embeddings = new GoogleGenAIEmbeddings({
-            model: "text-embedding-004",
+        const embeddings = new GoogleGenerativeAIEmbeddings({
+            model: "gemini-embedding-001",
         });
 
         console.log(`Storing ${docsWithMetadata.length} chunks in Qdrant...`);
         await QdrantVectorStore.fromDocuments(docsWithMetadata, embeddings, getVectorStoreConfig());
+
+        const qdrantClient = new QdrantClient({
+            url: process.env.QDRANT_URL || "http://localhost:6333",
+            ...(process.env.QDRANT_API_KEY && { apiKey: process.env.QDRANT_API_KEY })
+        });
+        await qdrantClient.createPayloadIndex(COLLECTION_NAME, {
+            field_name: "metadata.documentId",
+            field_schema: "keyword"
+        }).catch(() => {}); // ignore if index already exists
+
         console.log(`Successfully stored in Qdrant. Document ID: ${documentId}`);
 
         res.json({ 
@@ -77,8 +88,8 @@ app.post("/api/ask", async (req, res) => {
             return res.status(400).json({ error: "Query and documentId are required" });
         }
 
-        const embeddings = new GoogleGenAIEmbeddings({
-            model: "text-embedding-004",
+        const embeddings = new GoogleGenerativeAIEmbeddings({
+            model: "gemini-embedding-001",
         });
 
         const vectorStore = await QdrantVectorStore.fromExistingCollection(embeddings, getVectorStoreConfig());
@@ -103,8 +114,8 @@ app.post("/api/ask", async (req, res) => {
             return res.json({ answer: "No relevant context found in the indexed documents." });
         }
 
-        const model = new ChatGoogleGenAI({
-            modelName: "gemini-1.5-flash",
+        const model = new ChatGoogleGenerativeAI({
+            model: "gemini-2.5-flash",
             temperature: 0.1
         });
         

@@ -2,7 +2,7 @@ import "dotenv/config";
 import { PDFLoader } from "@langchain/community/document_loaders/fs/pdf";
 import { TextLoader } from "langchain/document_loaders/fs/text";
 import { RecursiveCharacterTextSplitter } from "@langchain/textsplitters";
-import { GoogleGenAIEmbeddings, ChatGoogleGenAI } from "@langchain/google-genai";
+import { GoogleGenerativeAIEmbeddings, ChatGoogleGenerativeAI } from "@langchain/google-genai";
 import { QdrantVectorStore } from "@langchain/qdrant";
 import { program } from "commander";
 import path from "path";
@@ -59,8 +59,8 @@ program
           return doc;
       });
 
-      const embeddings = new GoogleGenAIEmbeddings({
-        model: "text-embedding-004",
+      const embeddings = new GoogleGenerativeAIEmbeddings({
+        model: "gemini-embedding-001",
       });
 
       console.log("Generating embeddings and saving to Qdrant...");
@@ -84,8 +84,8 @@ program
           console.log(`Filtering by Document ID: ${options.documentId}`);
       }
       
-      const embeddings = new GoogleGenAIEmbeddings({
-        model: "text-embedding-004",
+      const embeddings = new GoogleGenerativeAIEmbeddings({
+        model: "gemini-embedding-001",
       });
 
       const vectorStore = await QdrantVectorStore.fromExistingCollection(embeddings, getVectorStoreConfig());
@@ -114,8 +114,8 @@ program
          return;
       }
 
-      const model = new ChatGoogleGenAI({
-        modelName: "gemini-1.5-flash",
+      const model = new ChatGoogleGenerativeAI({
+        model: "gemini-2.5-flash",
         temperature: 0.1
       });
 
